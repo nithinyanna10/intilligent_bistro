@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1400, initial-scale=1" />
+  <title>The Intelligent Bistro — Mobile Screens</title>
+  <link rel="stylesheet" href="colors_and_type.css" />
+  <style>
+    /* ──── Root tokens · tweakable axes ──────────────────────── */
+    :root {
+      /* AI accent (Concierge / lavender by default) */
+      --ai:       #A39CFF;
+      --ai-20:    rgba(163,156,255,0.20);
+      --ai-40:    rgba(163,156,255,0.40);
+      --ai-60:    rgba(163,156,255,0.60);
+      --ai-glow:  rgba(163,156,255,0.18);
+
+      /* Material (Premium by default) */
+      --card-radius:    20px;
+      --card-radius-sm: 16px;
+      --edge:           rgba(255,255,255,0.04);
+      --inner-hi:       inset 0 1px 0 rgba(255,255,255,0.05);
+      --lift:           0 8px 24px rgba(0,0,0,0.40);
+    }
+    :root[data-mat="minimal"] {
+      --card-radius:    14px;
+      --card-radius-sm: 12px;
+      --edge:           rgba(255,255,255,0.0);
+      --inner-hi:       none;
+      --lift:           none;
+    }
+    :root[data-mat="cinematic"] {
+      --card-radius:    24px;
+      --card-radius-sm: 18px;
+      --edge:           rgba(255,255,255,0.10);
+      --inner-hi:       inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 1px rgba(255,255,255,0.06);
+      --lift:           0 16px 48px rgba(0,0,0,0.60), 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    /* Imagery axis — toggle photo / emoji / monochrome */
+    :root[data-img="photo"]    .food-emoji { display: none; }
+    :root[data-img="photo"]    .food-photo { display: block; filter: none; }
+    :root[data-img="emoji"]    .food-photo { display: none; }
+    :root[data-img="emoji"]    .food-emoji { display: flex; }
+    :root[data-img="mono"]     .food-emoji { display: none; }
+    :root[data-img="mono"]     .food-photo {
+      display: block;
+      filter: grayscale(1) contrast(1.05) brightness(0.92);
+    }
+    :root[data-img="mono"]     .food-tile::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,106,26,0.06) 0%, rgba(255,106,26,0.0) 60%);
+      pointer-events: none;
+    }
+
+    /* ──── Page chrome ──────────────────────────────────────── */
+    html, body {
+      margin: 0; padding: 0;
+      background: radial-gradient(120% 90% at 50% 0%, #0E0E10 0%, #06060A 60%, #050507 100%);
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      color: #EDEDF0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .stage {
+      min-height: 100vh;
+      padding: 44px 28px 64px;
+      box-sizing: border-box;
+    }
+    .heading {
+      max-width: 1280px;
+      margin: 0 auto 32px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #71717A;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.10em; text-transform: uppercase;
+      white-space: nowrap; margin-bottom: 6px;
+    }
+    .eyebrow-dot {
+      width: 5px; height: 5px; border-radius: 9999px;
+      background: var(--ai);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--ai-glow);
+    }
+    .h1 {
+      font-size: 32px; line-height: 1.08; font-weight: 700; letter-spacing: -0.022em;
+      color: #EDEDF0; margin: 0;
+    }
+    .sub {
+      font-size: 14.5px; color: #9A9AA3; margin: 8px 0 0; max-width: 760px; line-height: 1.55;
+      letter-spacing: -0.005em;
+    }
+    .sub a { color: var(--ai); text-decoration: none; border-bottom: 1px solid var(--ai-40); }
+
+    .row-wrap { width: 100%; overflow-x: auto; padding-bottom: 24px; }
+    .row-wrap::-webkit-scrollbar { height: 8px; }
+    .row-wrap::-webkit-scrollbar-thumb { background: #1B1B20; border-radius: 9999px; }
+    .row {
+      display: flex; gap: 36px; justify-content: center; flex-wrap: nowrap;
+      align-items: flex-start;
+      min-width: max-content;
+      margin: 0 auto;
+      width: max-content;
+    }
+    .phone-block { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .phone-label-eyebrow {
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #5C5C65;
+    }
+    .phone-label-title {
+      font-size: 17px; font-weight: 600; color: #EDEDF0; margin-top: 4px; letter-spacing: -0.014em;
+    }
+    .phone-label-sub {
+      font-size: 12.5px; color: #9A9AA3; margin-top: 4px; max-width: 320px; text-align: center; line-height: 1.5;
+      letter-spacing: -0.005em;
+    }
+    .phone-label-wrap { text-align: center; }
+
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { scrollbar-width: none; }
+
+    [data-lucide], svg.lucide {
+      display: inline-block; stroke: currentColor; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ──── Motion language ──────────────────────────────────── */
+    /* AI sparkle: slow rotate + breathe (combined via nested spans) */
+    @keyframes ai-orbit {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .ai-orbit { display: inline-flex; animation: ai-orbit 8s linear infinite; }
+    @keyframes ai-breathe {
+      0%, 100% { transform: scale(0.95); }
+      50%      { transform: scale(1.05); }
+    }
+    .ai-breathe { display: inline-flex; animation: ai-breathe 3s ease-in-out infinite; }
+
+    /* Search bar AI sparkle: subtle opacity pulse */
+    @keyframes ai-pulse {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 1.0; }
+    }
+    .ai-pulse { animation: ai-pulse 2.4s ease-in-out infinite; }
+
+    /* "Open now" pulsing green dot */
+    @keyframes open-dot {
+      0%, 100% { opacity: 0.65; box-shadow: 0 0 0 0 rgba(61,214,140,0.45); }
+      50%      { opacity: 1.0;  box-shadow: 0 0 0 4px rgba(61,214,140,0.0);  }
+    }
+    .open-dot { animation: open-dot 2s ease-in-out infinite; }
+
+    /* Thinking dots with soft AI glow */
+    @keyframes thinking {
+      0%, 60%, 100% { opacity: 0.30; transform: scale(0.85); box-shadow: 0 0 0 var(--ai-glow); }
+      30%           { opacity: 1.0;  transform: scale(1.0);  box-shadow: 0 0 12px var(--ai-40); }
+    }
+    .thinking-dot {
+      width: 6px; height: 6px; border-radius: 9999px;
+      background: var(--ai);
+      display: inline-block;
+      animation: thinking 1.4s ease-in-out infinite;
+    }
+
+    /* Featured card shimmer sweep — runs once on mount */
+    @keyframes shimmer-sweep {
+      0%   { transform: translateX(-110%); }
+      100% { transform: translateX(120%); }
+    }
+    .shimmer-once {
+      background: linear-gradient(105deg,
+        rgba(255,255,255,0) 30%,
+        rgba(255,255,255,0.06) 50%,
+        rgba(255,255,255,0) 70%);
+      animation: shimmer-sweep 1.6s cubic-bezier(0.22, 0.61, 0.36, 1) 0.6s 1 forwards;
+    }
+
+    /* Qty number crossfade on change */
+    @keyframes qty-in {
+      from { opacity: 0; transform: scale(1.18); }
+      to   { opacity: 1; transform: scale(1.0); }
+    }
+    .qty-fade { animation: qty-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+    /* Cart badge bump on cart count change */
+    @keyframes badge-bump {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.30); }
+      100% { transform: scale(1); }
+    }
+    .badge-bump { animation: badge-bump 320ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+
+    /* Ambient AI glow on composer focus */
+    @keyframes ambient {
+      0%, 100% { opacity: 0;    }
+      50%      { opacity: 0.45; }
+    }
+    .ambient-glow { animation: ambient 3.2s ease-in-out infinite; }
+
+    /* Subtle row entry stagger (visible on mount only) */
+    @keyframes row-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <script src="ui_kits/mobile/data.js"></script>
+</head>
+<body>
+  <div class="stage">
+    <div class="heading">
+      <span class="eyebrow"><span class="eyebrow-dot"></span>Mobile · production direction</span>
+      <h1 class="h1">The Intelligent Bistro</h1>
+      <p class="sub">Layered graphite with one warm CTA and a cool AI accent. The Tweaks panel rewires the entire mood — change <em>AI personality</em>, <em>material</em>, or <em>imagery</em> to see how the design pivots without breaking. See <a href="HANDOFF.md">HANDOFF.md</a> for implementation classes.</p>
+    </div>
+    <div class="row-wrap hide-scroll"><div class="row" id="root"></div></div>
+  </div>
+
+  <script type="text/babel" src="ui_kits/mobile/ios-frame.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="ui_kits/mobile/components.jsx"></script>
+  <script type="text/babel" src="ui_kits/mobile/screens.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useLayoutEffect, useState, useEffect } = React;
+    const C = window.Bistro_C;
+
+    // ─── Tweak defaults (host rewrites this block in place) ───
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "ai": "lavender",
+      "material": "premium",
+      "imagery": "photo"
+    }/*EDITMODE-END*/;
+
+    // ─── AI personality palettes (rewires every AI surface) ──
+    const AI_PALETTES = {
+      lavender: {
+        ai:       "#A39CFF",
+        ai20:     "rgba(163,156,255,0.20)",
+        ai40:     "rgba(163,156,255,0.40)",
+        ai60:     "rgba(163,156,255,0.60)",
+        aiGlow:   "rgba(163,156,255,0.20)",
+      },
+      amber: {
+        ai:       "#FDBA74",
+        ai20:     "rgba(253,186,116,0.20)",
+        ai40:     "rgba(253,186,116,0.40)",
+        ai60:     "rgba(253,186,116,0.60)",
+        aiGlow:   "rgba(253,186,116,0.22)",
+      },
+      emerald: {
+        ai:       "#6EE7B7",
+        ai20:     "rgba(110,231,183,0.20)",
+        ai40:     "rgba(110,231,183,0.40)",
+        ai60:     "rgba(110,231,183,0.60)",
+        aiGlow:   "rgba(110,231,183,0.22)",
+      },
+    };
+
+    // ─── Pre-baked transcript & cart ─────────────────────────
+    const PREFILLED_MESSAGES = [
+      { id: "m0", role: "assistant", text: "Good afternoon. What can I get started for you?" },
+      { id: "u1", role: "user", text: "Add two spicy chicken sandwiches and a large water" },
+      { id: "a1", role: "assistant",
+        text: "Done — two Spicy Chicken Sandwiches and a Large Water are in your cart.",
+        actions: [
+          { type: "ADD_ITEM", itemId: "spicy_chicken_sandwich", quantity: 2, modifiers: [] },
+          { type: "ADD_ITEM", itemId: "large_water",            quantity: 1, modifiers: [] },
+        ] },
+      { id: "u2", role: "user", text: "I want something vegetarian too" },
+    ];
+
+    const PREFILLED_CART = [
+      { itemId: "spicy_chicken_sandwich", name: "Spicy Chicken Sandwich", price: 11.99, quantity: 2, modifiers: [] },
+      { itemId: "large_water",            name: "Large Water",            price: 3.49,  quantity: 1, modifiers: [] },
+      { itemId: "truffle_fries",          name: "Truffle Fries",          price: 6.99,  quantity: 1, modifiers: ["No parmesan"] },
+      { itemId: "chocolate_lava_cake",    name: "Chocolate Lava Cake",    price: 7.99,  quantity: 1, modifiers: [] },
+    ];
+
+    function PhoneFrame({ screen, eyebrow, title, sub, cartCount = 0 }) {
+      return (
+        <div className="phone-block">
+          <IOSDevice width={402} height={874} dark>
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "radial-gradient(120% 90% at 50% 0%, #0E0E10 0%, #08080A 60%, #06060A 100%)",
+              display: "flex", flexDirection: "column",
+              paddingTop: 54, color: "#EDEDF0",
+            }}>
+              <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative" }} className="hide-scroll">
+                {screen.body}
+              </div>
+              <TabBar active={screen.tab} onChange={() => {}} cartCount={cartCount} />
+            </div>
+          </IOSDevice>
+          <div className="phone-label-wrap">
+            <div className="phone-label-eyebrow">{eyebrow}</div>
+            <div className="phone-label-title">{title}</div>
+            <div className="phone-label-sub">{sub}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      // Wire CSS vars + data attrs whenever a tweak changes.
+      useLayoutEffect(() => {
+        const root = document.documentElement;
+        // AI palette
+        const p = AI_PALETTES[t.ai] || AI_PALETTES.lavender;
+        root.style.setProperty("--ai",      p.ai);
+        root.style.setProperty("--ai-20",   p.ai20);
+        root.style.setProperty("--ai-40",   p.ai40);
+        root.style.setProperty("--ai-60",   p.ai60);
+        root.style.setProperty("--ai-glow", p.aiGlow);
+        // Material + imagery as data attrs (CSS in <head> does the rest)
+        root.setAttribute("data-mat", t.material);
+        root.setAttribute("data-img", t.imagery);
+        root.setAttribute("data-ai",  t.ai);
+      }, [t.ai, t.material, t.imagery]);
+
+      useLayoutEffect(() => { window.lucide && window.lucide.createIcons(); });
+
+      // Pre-scroll the Menu phone so menu cards are above the fold.
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          const phone = document.querySelectorAll('.phone-block')[0];
+          if (!phone) return;
+          const scrollers = phone.querySelectorAll('div');
+          for (const s of scrollers) {
+            if (s.style && s.style.overflowY === 'auto') { s.scrollTop = 160; break; }
+          }
+        }, 400);
+        return () => clearTimeout(timer);
+      }, []);
+
+      const MenuFrame = (
+        <PhoneFrame
+          screen={{ tab: "menu", body:
+            <MenuScreen menu={window.MENU} onAdd={() => {}} goAiWaiter={() => {}} />
+          }}
+          cartCount={4}
+          eyebrow="01 / Menu"
+          title="Browse the bistro"
+          sub="Status, hero, AI-tinted search, restrained callout, featured tile with shimmer sweep, full menu."
+        />
+      );
+
+      const WaiterFrame = (
+        <PhoneFrame
+          screen={{ tab: "ai-waiter", body:
+            <AiWaiterScreen
+              messages={PREFILLED_MESSAGES}
+              send={() => {}}
+              loading={true}
+              menu={window.MENU}
+              banner={null}
+              onReset={() => {}}
+              composerFocused={true}
+              ambient={true}
+            />
+          }}
+          cartCount={3}
+          eyebrow="02 / AI Waiter"
+          title="Concierge ordering"
+          sub="Outlined AI bubbles, Order update card with action bar, thinking dots, focused composer ring, ambient AI glow."
+        />
+      );
+
+      const CartFrame = (
+        <PhoneFrame
+          screen={{ tab: "cart", body:
+            <CartScreen
+              items={PREFILLED_CART}
+              updateQty={() => {}}
+              removeItem={() => {}}
+              clearCart={() => {}}
+              onPlaceOrder={() => {}}
+              goMenu={() => {}}
+              goAiWaiter={() => {}}
+            />
+          }}
+          cartCount={PREFILLED_CART.reduce((n, i) => n + i.quantity, 0)}
+          eyebrow="03 / Cart"
+          title="Quiet checkout"
+          sub="Photo tiles, modifier chip, gradient CTA with warm shadow — the screen's single warm moment."
+        />
+      );
+
+      return (
+        <>
+          {MenuFrame}
+          {WaiterFrame}
+          {CartFrame}
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="AI personality" />
+            <TweakRadio
+              label="Accent"
+              value={t.ai}
+              options={[
+                { value: "lavender", label: "Concierge" },
+                { value: "amber",    label: "Warm" },
+                { value: "emerald",  label: "Somm" },
+              ]}
+              onChange={(v) => setTweak("ai", v)}
+            />
+
+            <TweakSection label="Material" />
+            <TweakRadio
+              label="Surface"
+              value={t.material}
+              options={[
+                { value: "minimal",   label: "Minimal" },
+                { value: "premium",   label: "Premium" },
+                { value: "cinematic", label: "Cinema" },
+              ]}
+              onChange={(v) => setTweak("material", v)}
+            />
+
+            <TweakSection label="Imagery" />
+            <TweakRadio
+              label="Tiles"
+              value={t.imagery}
+              options={[
+                { value: "photo", label: "Photo" },
+                { value: "emoji", label: "Glyph" },
+                { value: "mono",  label: "Mono" },
+              ]}
+              onChange={(v) => setTweak("imagery", v)}
+            />
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
