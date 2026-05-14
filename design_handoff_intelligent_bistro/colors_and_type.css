@@ -1,0 +1,162 @@
+/* ─────────────────────────────────────────────────────────────
+   The Intelligent Bistro — Foundations
+   Color + Type tokens, lifted directly from the mobile app's
+   constants/colors.ts and tailwind.config.js.
+   ───────────────────────────────────────────────────────────── */
+
+/* Self-hosted Inter as the closest web match to React Native's
+   `System` font (iOS SF Pro / Android Roboto). Flagged as a
+   substitution — see README "Substitutions". */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  /* ── Brand palette ───────────────────────────────────────── */
+  --bistro-bg:          #09090B;  /* zinc-950 — app canvas */
+  --bistro-card:        #18181B;  /* zinc-900 — cards, bubbles */
+  --bistro-card-muted:  #27272A;  /* zinc-800 — chips, qty pills */
+  --bistro-border:      #3F3F46;  /* zinc-700 — hairline borders */
+  --bistro-border-soft: rgba(63, 63, 70, 0.40); /* the 40 % version used everywhere */
+
+  --bistro-accent:      #F97316;  /* orange-500 — primary action */
+  --bistro-accent-soft: #FB923C;  /* orange-400 — hover / glow / active text */
+  --bistro-accent-20:   rgba(249, 115, 22, 0.20); /* AI chip background */
+  --bistro-accent-30:   rgba(249, 115, 22, 0.30); /* AI-understood card border */
+
+  --bistro-text:        #FAFAFA;  /* zinc-50 — primary text */
+  --bistro-text-muted:  #A1A1AA;  /* zinc-400 — secondary text */
+  --bistro-text-subtle: #71717A;  /* zinc-500 — placeholders, inactive tabs */
+
+  --bistro-success:     #10B981;  /* emerald-500 — vegan tag, success modal */
+  --bistro-success-15:  rgba(16, 185, 129, 0.15);
+  --bistro-success-30:  rgba(16, 185, 129, 0.30);
+  --bistro-warning:     #F59E0B;  /* amber-500 — "popular" star tag */
+  --bistro-danger:      #F87171;  /* red-400 — inline error text */
+
+  /* ── Semantic aliases ────────────────────────────────────── */
+  --fg1: var(--bistro-text);
+  --fg2: var(--bistro-text-muted);
+  --fg3: var(--bistro-text-subtle);
+  --bg1: var(--bistro-bg);
+  --bg2: var(--bistro-card);
+  --bg3: var(--bistro-card-muted);
+  --accent: var(--bistro-accent);
+  --accent-soft: var(--bistro-accent-soft);
+  --border: var(--bistro-border);
+
+  /* ── Gradients (lifted from screens) ──────────────────────── */
+  --grad-accent: linear-gradient(135deg, #F97316 0%, #FB923C 100%); /* CTA + waiter avatar */
+  --grad-hero:   linear-gradient(135deg, #27272A 0%, #18181B 100%); /* hero + totals card */
+  --grad-muted:  linear-gradient(135deg, #27272A 0%, #3F3F46 100%); /* secondary button */
+
+  /* ── Type ────────────────────────────────────────────────── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: var(--font-sans);   /* App relies on a single family */
+
+  /* Sizes mirror NativeWind classes used in the app */
+  --fs-hero:   24px;   /* text-2xl — "The Intelligent Bistro" */
+  --fs-title:  18px;   /* text-lg — modal headings */
+  --fs-body:   16px;   /* text-base — prices, totals */
+  --fs-chat:   15px;   /* text-[15px] — chat bubble */
+  --fs-sm:     14px;   /* text-sm — descriptions */
+  --fs-xs:     12px;   /* text-xs — meta, captions */
+  --fs-mini:   11px;   /* text-[11px] — tab labels */
+  --fs-micro:  10px;   /* text-[10px] — badges, tag pills */
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semi:    600;
+  --fw-bold:    700;
+
+  --lh-tight:   1.10;   /* hero */
+  --lh-snug:    1.25;   /* titles */
+  --lh-normal:  1.40;   /* body */
+  --lh-loose:   1.55;   /* descriptions */
+  --letter-wide: 0.04em; /* "AI-POWERED" eyebrow */
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --r-pill:  9999px;  /* chips, tags, CTA on suggestions */
+  --r-3xl:   24px;    /* hero card, modal */
+  --r-2xl:   20px;    /* CTA gradient, totals card */
+  --r-xl:    16px;    /* default card, gradient button */
+  --r-lg:    12px;    /* inner imagery wells, success banner */
+  --r-md:    6px;     /* chat bubble tail-side corner */
+
+  /* ── Spacing (4-px grid, matches NativeWind classes) ──────── */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;   /* default card padding */
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+
+  /* ── Elevation ───────────────────────────────────────────── */
+  /* The app is flat — depth comes from gradient + border, never box-shadow.
+     These web-only fallbacks approximate the same feel for hover/focus. */
+  --shadow-card:    0 1px 0 rgba(255,255,255,0.02) inset;
+  --shadow-lift:    0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-accent:  0 8px 20px rgba(249, 115, 22, 0.35);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Base / semantic element styles
+   ───────────────────────────────────────────────────────────── */
+html, body {
+  background: var(--bistro-bg);
+  color: var(--bistro-text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .h1 {
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  color: var(--fg1);
+}
+h2, .h2 {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  color: var(--fg1);
+}
+h3, .h3 {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--fg1);
+}
+p, .body {
+  font-size: var(--fs-sm);
+  color: var(--fg2);
+  line-height: var(--lh-loose);
+}
+.eyebrow {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--letter-wide);
+  text-transform: uppercase;
+  color: var(--accent-soft);
+}
+.caption {
+  font-size: var(--fs-xs);
+  color: var(--fg2);
+}
+.price {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+}
+.mono, code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--fg1);
+  background: var(--bg3);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
