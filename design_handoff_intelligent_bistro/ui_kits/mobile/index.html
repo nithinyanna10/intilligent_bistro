@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Intelligent Bistro — Mobile UI Kit</title>
+  <link rel="stylesheet" href="../../colors_and_type.css" />
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background: #0a0a0c;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      color: var(--bistro-text);
+      -webkit-font-smoothing: antialiased;
+    }
+    .stage {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px 16px;
+      box-sizing: border-box;
+      background:
+        radial-gradient(60% 60% at 20% 20%, rgba(249,115,22,0.10) 0%, transparent 70%),
+        radial-gradient(50% 50% at 80% 80%, rgba(251,146,60,0.06) 0%, transparent 70%),
+        #0a0a0c;
+    }
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { scrollbar-width: none; }
+
+    /* Spinner used by LoadingBubble */
+    .bistro-spin { animation: bistro-spin 0.8s linear infinite; }
+    @keyframes bistro-spin { to { transform: rotate(360deg); } }
+
+    /* Lucide icons render as <svg> from <i data-lucide>; this normalizes */
+    [data-lucide], svg.lucide {
+      display: inline-block;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <!-- Data + parser -->
+  <script src="data.js"></script>
+</head>
+<body>
+  <div class="stage">
+    <div id="root"></div>
+  </div>
+
+  <!-- iOS frame, then app components -->
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="screens.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useCallback, useLayoutEffect, useRef } = React;
+    const C = window.Bistro_C;
+
+    function App() {
+      const [tab, setTab]           = useState("menu");
+      const [cart, setCart]         = useState([]);
+      const [messages, setMessages] = useState([
+        {
+          id: "m0",
+          role: "assistant",
+          text: "Good afternoon. What can I get started for you?",
+        },
+      ]);
+      const [loading, setLoading]   = useState(false);
+      const [banner, setBanner]     = useState(null);
+      const [success, setSuccess]   = useState(false);
+
+      // Re-run Lucide after every render so new <i data-lucide>s become SVGs.
+      useLayoutEffect(() => { window.lucide && window.lucide.createIcons(); });
+
+      const cartCount = cart.reduce((n, i) => n + i.quantity, 0);
+
+      const addItem = useCallback((item, qty = 1) => {
+        setCart(c => {
+          const existing = c.find(x => x.itemId === item.id);
+          if (existing) {
+            return c.map(x => x.itemId === item.id ? { ...x, quantity: x.quantity + qty } : x);
+          }
+          return [...c, { itemId: item.id, name: item.name, price: item.price, quantity: qty, modifiers: [] }];
+        });
+      }, []);
+
+      const updateQty = useCallback((id, qty) => {
+        if (qty <= 0) { setCart(c => c.filter(x => x.itemId !== id)); return; }
+        setCart(c => c.map(x => x.itemId === id ? { ...x, quantity: qty } : x));
+      }, []);
+
+      const removeItem = useCallback((id) => {
+        setCart(c => c.filter(x => x.itemId !== id));
+      }, []);
+
+      const clearCart = useCallback(() => setCart([]), []);
+
+      const applyActions = useCallback((actions) => {
+        setCart(prev => {
+          let next = [...prev];
+          for (const a of actions) {
+            if (a.type === "ADD_ITEM") {
+              const item = window.MENU.find(m => m.id === a.itemId);
+              if (!item) continue;
+              const existing = next.find(x => x.itemId === a.itemId);
+              if (existing) {
+                next = next.map(x => x.itemId === a.itemId ? { ...x, quantity: x.quantity + a.quantity, modifiers: a.modifiers && a.modifiers.length ? a.modifiers : x.modifiers } : x);
+              } else {
+                next = [...next, { itemId: item.id, name: item.name, price: item.price, quantity: a.quantity, modifiers: a.modifiers || [] }];
+              }
+            } else if (a.type === "REMOVE_ITEM") {
+              next = next.filter(x => x.itemId !== a.itemId);
+            } else if (a.type === "UPDATE_QUANTITY") {
+              next = next.map(x => x.itemId === a.itemId ? { ...x, quantity: a.quantity } : x).filter(x => x.quantity > 0);
+            } else if (a.type === "UPDATE_MODIFIER") {
+              next = next.map(x => x.itemId === a.itemId ? { ...x, modifiers: a.modifiers } : x);
+            } else if (a.type === "CLEAR_CART") {
+              next = [];
+            }
+          }
+          return next;
+        });
+      }, []);
+
+      const send = useCallback(async (text) => {
+        const msg = { id: "u" + Date.now(), role: "user", text };
+        setMessages(m => [...m, msg]);
+        setLoading(true);
+        await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+        const result = window.parseOrder(text, cart, window.MENU);
+        setMessages(m => [...m, { id: "a" + Date.now(), role: "assistant", text: result.assistantMessage, actions: result.actions }]);
+        const mutating = new Set(["ADD_ITEM", "REMOVE_ITEM", "UPDATE_QUANTITY", "UPDATE_MODIFIER", "CLEAR_CART"]);
+        const mutates = result.actions.some(a => mutating.has(a.type));
+        applyActions(result.actions);
+        if (mutates) {
+          setBanner("Cart updated");
+          setTimeout(() => setBanner(null), 2400);
+        }
+        setLoading(false);
+      }, [cart, applyActions]);
+
+      const resetChat = useCallback(() => {
+        setMessages([{ id: "m0", role: "assistant", text: "Good afternoon. What can I get started for you?" }]);
+      }, []);
+
+      const placeOrder = useCallback(() => setSuccess(true), []);
+      const closeSuccess = useCallback(() => { setSuccess(false); setCart([]); setTab("menu"); }, []);
+
+      let body;
+      if (tab === "menu") {
+        body = <MenuScreen menu={window.MENU} onAdd={addItem} goAiWaiter={() => setTab("ai-waiter")} />;
+      } else if (tab === "ai-waiter") {
+        body = <AiWaiterScreen messages={messages} send={send} loading={loading} menu={window.MENU} banner={banner} onReset={resetChat} />;
+      } else {
+        body = <CartScreen
+          items={cart}
+          updateQty={updateQty}
+          removeItem={removeItem}
+          clearCart={clearCart}
+          onPlaceOrder={placeOrder}
+          goMenu={() => setTab("menu")}
+          goAiWaiter={() => setTab("ai-waiter")}
+        />;
+      }
+
+      return (
+        <IOSDevice width={402} height={874} dark>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: C.bg,
+            display: "flex", flexDirection: "column",
+            paddingTop: 54,  /* status bar overlap */
+            color: C.text,
+          }}>
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }} className="hide-scroll">
+              {body}
+            </div>
+            <TabBar active={tab} onChange={setTab} cartCount={cartCount} />
+            <SuccessModal open={success} onDone={closeSuccess} />
+          </div>
+        </IOSDevice>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
